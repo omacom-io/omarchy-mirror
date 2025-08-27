@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Assuming an Ubuntu server
+
+sudo apt install rclone
