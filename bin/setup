@@ -1,5 +1,5 @@
 #!/bin/bash
 
-# Assuming an Ubuntu server
-
-sudo apt install rclone
+mkdir -p ~/.config/rclone
+touch ~/.config/rclone/rclone.conf
+sudo apt install rclone vim
