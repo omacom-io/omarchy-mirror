@@ -1,0 +1,28 @@
+#!/bin/bash
+
+UPSTREAM="lon.mirror.rackspace.com/archlinux/"
+STAGE="."
+R2="Omarchy-pkgs:omarchy-mirror"
+
+# Sync down all of core/extra/multilib in x86
+rsync -rlptH --safe-links --delete-delay --delay-updates --copy-links \
+  --include='*/' \
+  --include='/core/os/x86_64/***' \
+  --include='/extra/os/x86_64/***' \
+  --include='/multilib/os/x86_64/***' \
+  --include='/lastsync' --include='/lastupdate' \
+  --exclude='*' \
+  rsync://$UPSTREAM $STAGE
+
+R2="r2:archlinux"   # rclone remote "r2" and bucket "archlinux"
+
+# Upload package payloads and clean old ones
+rclone sync "$STAGE" "$R2" --fast-list \
+  --transfers=8 --checkers=16 \
+  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
+
+# Upload db/files + lastsync/lastupdate last
+rclone copy "$STAGE" "$R2" --fast-list \
+  --transfers=4 \
+  --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
+
