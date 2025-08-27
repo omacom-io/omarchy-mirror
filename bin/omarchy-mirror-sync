@@ -2,7 +2,7 @@
 
 UPSTREAM="iad.mirror.rackspace.com/archlinux/"
 STAGE="/mnt/arch-mirror/"
-R2="omarchy-mirror:omarchy-mirror"
+R2="omarchy:omarchy-mirror"
 
 # Sync down all of core/extra/multilib in x86
 rsync -rlptH --safe-links --delete-delay --delay-updates --copy-links \
