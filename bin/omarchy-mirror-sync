@@ -13,9 +13,13 @@ date +%s > "$STAGE/lastsync"
 # Upload mirror packages without meta data
 rclone sync "$STAGE" "$R2" -P --fast-list \
   --transfers=8 --checkers=16 \
-  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
+  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate' \
+  --s3-metadata-directive REPLACE \
+  --s3-cache-control "public,max-age=31536000,immutable"
 
 # Upload db/files + lastsync/lastupdate last
 rclone copy "$STAGE" "$R2" -P --fast-list \
   --transfers=4 \
-  --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
+  --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate' \
+  --s3-metadata-directive REPLACE \
+  --s3-cache-control "no-cache"
