@@ -7,7 +7,8 @@ apt install rclone vim
 
 # Setup rclone (insert real values)
 mkdir -p ~/.config/rclone
-touch ~/.config/rclone/rclone.conf
+cp /root/omarchy-mirror/config/rclone.conf ~/.config/rclone/rclone.conf
+echo "You must insert credentials manually in ~/.config/rclone/rclone.conf"
 
 # Install hourly mirror service
 cp /root/omarchy-mirror/config/omarchy-mirror-sync* /etc/systemd/system/
