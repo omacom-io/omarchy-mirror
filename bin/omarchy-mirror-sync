@@ -1,48 +1,21 @@
 #!/bin/bash
-set -euo pipefail
-
-VERBOSE=0
-for arg in "$@"; do
-  case "$arg" in
-    --verbose|-v) VERBOSE=1 ;;
-  esac
-done
 
 UPSTREAM="iad.mirror.rackspace.com/archlinux/"
 STAGE="/mnt/arch-mirror/"
 R2="omarchy:omarchy-mirror"
 
-# Build rsync options
-rsync_opts=( -rlptH --safe-links --delete-delay --delay-updates --copy-links )
-(( VERBOSE )) && rsync_opts+=( -v --info=progress2 )
-
-(( VERBOSE )) && echo "→ rsync from rsync://$UPSTREAM to $STAGE (core/extra/multilib + pool + lastsync/lastupdate)"
-rsync "${rsync_opts[@]}" \
-  --include='*/' \
-  --include='/core/os/x86_64/***' \
-  --include='/extra/os/x86_64/***' \
-  --include='/multilib/os/x86_64/***' \
-  --include='/pool/***' \
-  --include='/lastsync' --include='/lastupdate' \
-  --exclude='*' \
-  "rsync://$UPSTREAM" "$STAGE"
+# Sync down the entire mirror
+rsync -rlptHv --safe-links --delete-delay --delay-updates --copy-links rsync://$UPSTREAM $STAGE
 
 # Mark freshness
-(( VERBOSE )) && echo "→ mark freshness in $STAGE/lastsync"
 date +%s > "$STAGE/lastsync"
 
-# Upload package payloads and clean old ones (exclude db/files/markers)
-rclone_sync_args=( sync "$STAGE" "$R2" --fast-list \
+# Upload mirror packages without meta data
+rclone sync "$STAGE" "$R2" -P --fast-list \
   --transfers=8 --checkers=16 \
-  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate' )
-(( VERBOSE )) && rclone_sync_args+=( -v --progress )
-(( VERBOSE )) && echo "→ rclone sync payloads to $R2 (excluding db/files,lastsync,lastupdate)"
-rclone "${rclone_sync_args[@]}"
+  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
 # Upload db/files + lastsync/lastupdate last
-rclone_copy_args=( copy "$STAGE" "$R2" --fast-list \
+rclone copy "$STAGE" "$R2" -P --fast-list \
   --transfers=4 \
-  --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate' )
-(( VERBOSE )) && rclone_copy_args+=( -v --progress )
-(( VERBOSE )) && echo "→ rclone copy db/files + markers to $R2"
-rclone "${rclone_copy_args[@]}"
+  --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
