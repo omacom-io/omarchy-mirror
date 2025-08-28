@@ -3,12 +3,13 @@
 # Meant to be run as root on an Ubuntu machine
 
 # General dependencies
-sudo apt install rclone vim
+apt install rclone vim
 
 # Setup rclone (insert real values)
 mkdir -p ~/.config/rclone
 touch ~/.config/rclone/rclone.conf
 
 # Install hourly mirror service
-sudo systemctl daemon-reload
-sudo systemctl enable --now /root/omarchy-mirror/config/omarchy-mirror-sync.timer
+cp /root/omarchy-mirror/config/omarchy-mirror-sync* /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now omarchy-mirror-sync.timer
