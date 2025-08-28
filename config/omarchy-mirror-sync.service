@@ -1,0 +1,9 @@
+[Unit]
+Description=Omarchy Arch Mirror Sync
+
+[Service]
+Type=oneshot
+ExecStart=/root/omarchy-mirror/bin/omarchy-mirror-sync
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
