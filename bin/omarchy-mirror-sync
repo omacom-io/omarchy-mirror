@@ -10,6 +10,7 @@ rsync -rlptH --safe-links --delete-delay --delay-updates --copy-links \
   --include='/core/os/x86_64/***' \
   --include='/extra/os/x86_64/***' \
   --include='/multilib/os/x86_64/***' \
+  --include='/pool/***' \
   --include='/lastsync' --include='/lastupdate' \
   --exclude='*' \
   rsync://$UPSTREAM $STAGE
