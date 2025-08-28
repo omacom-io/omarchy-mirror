@@ -4,18 +4,23 @@ UPSTREAM="iad.mirror.rackspace.com/archlinux/"
 STAGE="/mnt/arch-mirror/"
 R2="omarchy:omarchy-mirror"
 
-# Sync down the entire mirror
-rsync -rlptHv --safe-links --delete-delay --delay-updates --copy-links rsync://$UPSTREAM $STAGE
+echo "Start syncing Omarchy mirror"
+
+echo "Stage the entire mirror locally"
+rsync -rlptH --safe-links --delete-delay --delay-updates --copy-links rsync://$UPSTREAM $STAGE
 
 # Mark freshness
+echo "Mark freshness as $(date +%s)"
 date +%s > "$STAGE/lastsync"
 
-# Upload mirror packages without meta data
-rclone sync "$STAGE" "$R2" -P --fast-list \
+echo "Upload packages from stage to R2"
+rclone sync "$STAGE" "$R2" --fast-list \
   --transfers=8 --checkers=16 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
-# Upload db/files + lastsync/lastupdate last
-rclone copy "$STAGE" "$R2" -P --fast-list \
+echo "Upload db/files + lastsync/lastupdate from stage to R2"
+rclone copy "$STAGE" "$R2" --fast-list \
   --transfers=4 \
   --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
+
+echo "Finished syncing Omarchy mirror in ${SECONDS}s"
