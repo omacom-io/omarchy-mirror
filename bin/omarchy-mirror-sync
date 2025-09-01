@@ -4,22 +4,28 @@ UPSTREAM="arch.mirror.constant.com/archlinux/"
 STAGE="/mnt/arch-mirror/"
 R2="omarchy:omarchy-mirror"
 
+if [[ $1 == "--verbose" ]]; then
+  VERBOSE="-v"
+else
+  VERBOSE=""
+fi
+
 echo "Start syncing Omarchy mirror"
 
 echo "Stage the entire mirror locally"
-rsync -rlptH --safe-links --delete-delay --delay-updates --copy-links rsync://$UPSTREAM $STAGE
+rsync -rlptH $VERBOSE --safe-links --delete-delay --delay-updates --copy-links rsync://$UPSTREAM $STAGE
 
 # Mark freshness
 echo "Mark freshness as $(date +%s)"
 date +%s >"$STAGE/lastsync"
 
 echo "Upload packages from stage to R2"
-rclone sync "$STAGE" "$R2" --fast-list \
+rclone sync "$STAGE" "$R2" $VERBOSE --fast-list \
   --transfers=8 --checkers=16 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
 echo "Upload db/files + lastsync/lastupdate from stage to R2"
-rclone copy "$STAGE" "$R2" --fast-list \
+rclone copy "$STAGE" "$R2" $VERBOSE --fast-list \
   --transfers=4 \
   --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
 
