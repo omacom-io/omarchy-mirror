@@ -21,8 +21,9 @@ date +%s >"$STAGE/lastsync"
 
 # 1) Add/refresh packages only (no deletes)
 echo "Upload packages from stage to R2 (additive)"
-rclone copy "$STAGE" "$R2" $VERBOSE --fast-list \
-  --transfers=8 --checkers=16 \
+rclone copy "$STAGE" "$R2" $VERBOSE \
+  --ignore-existing --no-traverse \
+  --transfers=8 --checkers=32 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
 # 2) Publish db/files + freshness markers
