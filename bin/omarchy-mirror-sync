@@ -37,7 +37,8 @@ rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list \
 # 3) Prune anything no longer present upstream (safe after DB update)
 echo "Prune removed packages on R2"
 rclone sync "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list \
-  --transfers=4 --checkers=8 \
+  --size-only --no-update-modtime \
+  --checkers=128 --transfers=16 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
 echo "Finished syncing Omarchy mirror in ${SECONDS}s"
