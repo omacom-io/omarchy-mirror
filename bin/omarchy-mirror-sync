@@ -1,6 +1,6 @@
 #!/bin/bash
 
-UPSTREAM="iad.mirror.rackspace.com/archlinux/"
+UPSTREAM="arch.mirror.constant.com/archlinux/"
 STAGE="/mnt/arch-mirror/"
 R2="omarchy:omarchy-mirror"
 
@@ -11,7 +11,7 @@ rsync -rlptH --safe-links --delete-delay --delay-updates --copy-links rsync://$U
 
 # Mark freshness
 echo "Mark freshness as $(date +%s)"
-date +%s > "$STAGE/lastsync"
+date +%s >"$STAGE/lastsync"
 
 echo "Upload packages from stage to R2"
 rclone sync "$STAGE" "$R2" --fast-list \
