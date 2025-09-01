@@ -19,14 +19,22 @@ rsync -rlptH $VERBOSE --safe-links --delete-delay --delay-updates --copy-links r
 echo "Mark freshness as $(date +%s)"
 date +%s >"$STAGE/lastsync"
 
-echo "Upload packages from stage to R2"
-rclone sync "$STAGE" "$R2" $VERBOSE --fast-list \
+# 1) Add/refresh packages only (no deletes)
+echo "Upload packages from stage to R2 (additive)"
+rclone copy "$STAGE" "$R2" $VERBOSE --fast-list \
   --transfers=8 --checkers=16 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
+# 2) Publish db/files + freshness markers
 echo "Upload db/files + lastsync/lastupdate from stage to R2"
 rclone copy "$STAGE" "$R2" $VERBOSE --fast-list \
   --transfers=4 \
   --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
+
+# 3) Prune anything no longer present upstream (safe after DB update)
+echo "Prune removed packages on R2"
+rclone sync "$STAGE" "$R2" $VERBOSE --fast-list \
+  --transfers=4 --checkers=8 \
+  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
 echo "Finished syncing Omarchy mirror in ${SECONDS}s"
