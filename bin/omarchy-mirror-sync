@@ -5,7 +5,7 @@ STAGE="/mnt/arch-mirror/"
 R2="omarchy:omarchy-mirror"
 
 T2_UPSTREAM="mirror.funami.tech/arch-mact2/os/"
-T2_STAGE="/mnt/arch-mirror/arch-mact2/"
+T2_STAGE="${STAGE}arch-mact2/"
 
 if [[ $1 == "--verbose" ]]; then
   VERBOSE_RSYNC="-v"
