@@ -4,6 +4,9 @@ UPSTREAM="arch.mirror.constant.com/archlinux/"
 STAGE="/mnt/arch-mirror/"
 R2="omarchy:omarchy-mirror"
 
+T2_UPSTREAM="mirror.funami.tech/arch-mact2/os/"
+T2_STAGE="/mnt/arch-mirror/arch-mact2/"
+
 if [[ $1 == "--verbose" ]]; then
   VERBOSE_RSYNC="-v"
   VERBOSE_RCLONE="-vv"
@@ -14,8 +17,11 @@ fi
 
 echo "Start syncing Omarchy mirror"
 
-echo "Stage the entire mirror locally"
+echo "Stage the entire Arch mirror locally"
 rsync -rlptH $VERBOSE_RSYNC --safe-links --delete-delay --delay-updates --copy-links rsync://$UPSTREAM $STAGE
+
+echo "Stage the entire t2linux mirror locally"
+rsync -rlptH $VERBOSE_RSYNC --safe-links --delete-delay --delay-updates --copy-links rsync://$T2_UPSTREAM $T2_STAGE
 
 # Mark freshness
 echo "Mark freshness as $(date +%s)"
