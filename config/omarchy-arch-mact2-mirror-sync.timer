@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly Omarchy arch-mact2 Mirror Sync
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=1800
+Persistent=true
+
+[Install]
+WantedBy=timers.target

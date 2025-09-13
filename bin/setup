@@ -11,6 +11,7 @@ cp /root/omarchy-mirror/config/rclone.conf ~/.config/rclone/rclone.conf
 echo "You must insert credentials manually in ~/.config/rclone/rclone.conf"
 
 # Install hourly mirror service
-cp /root/omarchy-mirror/config/omarchy-mirror-sync* /etc/systemd/system/
+cp /root/omarchy-mirror/config/*mirror-sync* /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now omarchy-mirror-sync.timer
+systemctl enable --now omarchy-arch-mact2-mirror-sync.timer
