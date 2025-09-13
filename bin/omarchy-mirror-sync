@@ -1,16 +1,35 @@
 #!/bin/bash
 
-UPSTREAM="arch.mirror.constant.com/archlinux/"
-STAGE="/mnt/arch-mirror/"
-R2="omarchy:omarchy-mirror"
+# Default values
+VERBOSE_RSYNC=""
+VERBOSE_RCLONE=""
 
-if [[ $1 == "--verbose" ]]; then
-  VERBOSE_RSYNC="-v"
-  VERBOSE_RCLONE="-vv"
-else
-  VERBOSE_RSYNC=""
-  VERBOSE_RCLONE=""
-fi
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  --upstream)
+    UPSTREAM="$2"
+    shift 2
+    ;;
+  --stage)
+    STAGE="$2"
+    shift 2
+    ;;
+  --r2)
+    R2="$2"
+    shift 2
+    ;;
+  --verbose)
+    VERBOSE_RSYNC="-v"
+    VERBOSE_RCLONE="-vv"
+    shift
+    ;;
+  *)
+    echo "Unknown option: $1"
+    echo "Usage: $0 [--upstream UPSTREAM] [--stage STAGE] [--r2 R2] [--verbose]"
+    exit 1
+    ;;
+  esac
+done
 
 echo "Start syncing Omarchy mirror"
 
