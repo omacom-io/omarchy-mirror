@@ -1,9 +1,0 @@
-[Unit]
-Description=Omarchy arch-mact2 Mirror Sync
-
-[Service]
-Type=oneshot
-ExecStart=/root/omarchy-mirror/bin/omarchy-mirror-sync --upstream "mirror.funami.tech/arch-mact2/os/" --stage "/mnt/arch-mact2-mirror/" --r2 "omarchy:omarchy-arch-mact2-mirror"
-Nice=10
-IOSchedulingClass=best-effort
-IOSchedulingPriority=7
