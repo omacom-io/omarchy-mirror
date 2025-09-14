@@ -3,7 +3,7 @@ Description=Omarchy Arch Mirror Sync
 
 [Service]
 Type=oneshot
-ExecStart=/root/omarchy-mirror/bin/omarchy-mirror-sync
+ExecStart=/root/omarchy-mirror/bin/omarchy-mirror-sync --upstream "arch.mirror.constant.com/archlinux/" --stage "/mnt/arch-mirror/" --r2 "omarchy:omarchy-mirror"
 Nice=10
 IOSchedulingClass=best-effort
 IOSchedulingPriority=7

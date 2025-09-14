@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly Omarchy Mirror T2 Sync
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=1800
+Persistent=true
+
+[Install]
+WantedBy=timers.target
