@@ -1,0 +1,4 @@
+#!/bin/bash
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/omarchy-mirror-sync" --upstream "arch.mirror.constant.com/archlinux/" --stage "/mnt/arch-mirror/" --r2 "omarchy:omarchy-mirror-stable"
