@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Default values
+VERBOSE_RSYNC=""
+VERBOSE_RCLONE=""
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  --stage)
+    STAGE="$2"
+    shift 2
+    ;;
+  --r2)
+    R2="$2"
+    shift 2
+    ;;
+  --verbose)
+    VERBOSE_RSYNC="-v"
+    VERBOSE_RCLONE="-vv"
+    shift
+    ;;
+  *)
+    echo "Unknown option: $1"
+    echo "Usage: $0 [--stage STAGE] [--r2 R2] [--verbose]"
+    exit 1
+    ;;
+  esac
+done
+
+# 1) Add/refresh packages only (no deletes)
+echo "Upload packages from stage to R2 (additive)"
+rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE \
+  --ignore-existing --no-traverse \
+  --transfers=8 --checkers=32 \
+  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
+
+# 2) Publish db/files + freshness markers
+echo "Upload db/files + lastsync/lastupdate from stage to R2"
+rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list \
+  --transfers=4 \
+  --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
+
+# 3) Prune anything no longer present upstream (safe after DB update)
+echo "Prune removed packages on R2"
+rclone sync "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list \
+  --size-only --no-update-modtime \
+  --checkers=128 --transfers=16 \
+  --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
+
+echo "Finished uploading Omarchy mirror in ${SECONDS}s"
