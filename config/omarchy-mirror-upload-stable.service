@@ -1,0 +1,9 @@
+[Unit]
+Description=Omarchy Arch Mirror Upload Stable
+
+[Service]
+Type=oneshot
+ExecStart=/root/omarchy-mirror/bin/omarchy-mirror-upload --stage "/mnt/arch-mirror-stable/" --r2 "omarchy:omarchy-mirror-stable"
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

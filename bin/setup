@@ -15,3 +15,5 @@ cp /root/omarchy-mirror/config/*mirror* /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now omarchy-mirror-sync.timer
 systemctl enable --now omarchy-mirror-t2-sync.timer
+systemctl enable --now omarchy-mirror-stage-stable.timer
+systemctl enable --now omarchy-mirror-upload-stable.timer

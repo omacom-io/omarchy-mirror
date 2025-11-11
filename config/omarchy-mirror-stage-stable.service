@@ -1,0 +1,9 @@
+[Unit]
+Description=Omarchy Arch Mirror Stage Stable
+
+[Service]
+Type=oneshot
+ExecStart=/root/omarchy-mirror/bin/omarchy-mirror-stage --upstream "arch.mirror.constant.com/archlinux/" --stage "/mnt/arch-mirror-stable/"
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
