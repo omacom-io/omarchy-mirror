@@ -34,6 +34,13 @@ rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE \
   --transfers=8 --checkers=32 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
 
+# 1b) Re-check .sig files (tiny, so checksum comparison is cheap)
+echo "Ensure all .sig files are correct on R2"
+rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE \
+  --checksum --no-traverse \
+  --transfers=8 --checkers=32 \
+  --include '**/*.sig'
+
 # 2) Publish db/files + freshness markers
 echo "Upload db/files + lastsync/lastupdate from stage to R2"
 rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list \
