@@ -30,6 +30,7 @@ done
 # 1) Add/refresh packages only (no deletes)
 echo "Upload packages from stage to R2 (additive)"
 rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE \
+  --s3-no-head \
   --ignore-existing --no-traverse \
   --transfers=8 --checkers=32 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
@@ -37,19 +38,20 @@ rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE \
 # 1b) Re-check .sig files (tiny, so checksum comparison is cheap)
 echo "Ensure all .sig files are correct on R2"
 rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE \
+  --s3-no-head \
   --checksum --no-traverse \
   --transfers=8 --checkers=32 \
   --include '**/*.sig'
 
 # 2) Publish db/files + freshness markers
 echo "Upload db/files + lastsync/lastupdate from stage to R2"
-rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list \
+rclone copy "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list --s3-no-head \
   --transfers=4 \
   --include '**/*.db*' --include '**/*.files*' --include '/lastsync' --include '/lastupdate'
 
 # 3) Prune anything no longer present upstream (safe after DB update)
 echo "Prune removed packages on R2"
-rclone sync "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list \
+rclone sync "$STAGE" "$R2" $VERBOSE_RCLONE --fast-list --s3-no-head \
   --size-only --no-update-modtime \
   --checkers=128 --transfers=16 \
   --exclude '**/*.db*' --exclude '**/*.files*' --exclude '/lastsync' --exclude '/lastupdate'
