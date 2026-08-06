@@ -1,6 +1,10 @@
 # Omarchy Mirror
 
-Dedicated mirror of Arch core/extra/multilib repositories for Omarchy hosted on Cloudflare R2.
+Dedicated mirror of Arch core/extra/multilib repositories, and their `-debug` counterparts, for Omarchy hosted on Cloudflare R2.
+
+## Upstream
+
+We sync from `mirrors.kernel.org` because it carries Arch's `-debug` repos alongside `core`/`extra`/`multilib`. Many Tier 1 mirrors don't. Any replacement upstream has to carry them, too.
 
 ## Stable vs edge
 
