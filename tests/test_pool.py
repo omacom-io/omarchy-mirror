@@ -289,6 +289,11 @@ class PoolTest(unittest.TestCase):
         self.assertEqual(fields(render(original)), original)
         with self.assertRaises(Error):
             packages((self.stable_dir / "extra.db").read_bytes(), (self.edge_dir / "extra.files").read_bytes(), "x86_64")
+        db = (self.stable_dir / "extra.db").read_bytes()
+        records = packages(db, (self.stable_dir / "extra.files").read_bytes(), "x86_64")
+        del records["pool-demo-app"]["files"]["desc"]["NAME"]
+        with self.assertRaisesRegex(Error, "Expected one NAME"):
+            packages(db, assemble(records.values(), "files"), "x86_64")
 
     def test_cli_json_contract_and_test_revision_enforcement(self):
         stable, edge = self.initial()

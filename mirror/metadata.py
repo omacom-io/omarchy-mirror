@@ -91,6 +91,9 @@ def packages(database, file_database, arch):
         if "desc" not in members or "desc" not in file_members or "files" not in file_members:
             raise Error(f"Incomplete repository records for {entry}.")
         desc = members["desc"]
+        for field in ("NAME", "VERSION", "FILENAME", "ARCH", "SHA256SUM", "CSIZE"):
+            if one(file_members["desc"], field) != one(desc, field):
+                raise Error(f".db and .files identity fields disagree for {entry}.")
         # Preserve both records, but never accept contradictory shared metadata.
         for member in set(members) & set(file_members):
             if member == "files":
