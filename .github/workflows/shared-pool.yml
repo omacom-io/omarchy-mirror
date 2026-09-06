@@ -1,0 +1,55 @@
+name: Shared package pool
+
+on:
+  push:
+    paths: ['mirror/**', 'tests/**', 'worker/**', 'scripts/**', 'deploy/**', 'Dockerfile', '.dockerignore', 'pyproject.toml', 'bin/omarchy-mirror', '.github/workflows/shared-pool.yml']
+  pull_request:
+    paths: ['mirror/**', 'tests/**', 'worker/**', 'scripts/**', 'deploy/**', 'Dockerfile', '.dockerignore', 'pyproject.toml', 'bin/omarchy-mirror', '.github/workflows/shared-pool.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.14']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install '.[test]'
+      - run: python -m unittest discover -s tests -p test_pool.py -v
+
+  pacman-worker:
+    runs-on: ubuntu-latest
+    container: archlinux:base
+    steps:
+      - run: pacman -Syu --noconfirm --needed python python-pip git nodejs npm fakeroot
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: |
+          python -m venv .venv
+          .venv/bin/pip install '.[test]'
+          .venv/bin/python -m unittest discover -s tests -v
+      - run: npm ci
+        working-directory: worker
+      - run: npm run check && npm test && npx wrangler deploy --dry-run --outdir dist
+        working-directory: worker
+      - name: Signed pacman downloads through the Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          .venv/bin/python -m mirror.demo --output /tmp/pool-demo
+          (cd worker && node scripts/local-demo.mjs /tmp/pool-demo/store 8787) > /tmp/worker-demo.log 2>&1 &
+          worker_pid=$!
+          trap 'kill "$worker_pid" || true' EXIT
+          .venv/bin/python scripts/smoke-pacman.py --demo /tmp/pool-demo --wait 30
+
+  publisher-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker build -t omarchy-mirror-publisher:preview .
+      - run: docker run --rm --entrypoint python omarchy-mirror-publisher:preview -m mirror.demo --output /var/lib/omarchy-mirror/demo

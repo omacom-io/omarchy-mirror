@@ -2,6 +2,12 @@
 
 Dedicated mirror of Arch core/extra/multilib repositories for Omarchy hosted on Cloudflare R2.
 
+## Shared package pool preview
+
+The `feat/shared-package-pool` branch adds an independent publisher and Worker: one immutable package pool, JSON release manifests, signed databases rebuilt from cached metadata, frozen out-of-band candidates, CLI promotion, and a website comparing ring versions. It includes an Arch container, an hourly edge timer, and a signed two-package R2 demo.
+
+Start with the [deployment quickstart](docs/shared-package-pool-quickstart.md). This preview uses a separate bucket/prefix; the legacy scripts below continue to use their existing workflow.
+
 ## Stable vs edge
 
 The stable mirror is the default for Omarchy. It's located at `https://stable-mirror.omarchy.org/`, and it typically runs one month behind the very latest. This allows the Omarchy team time to catch any incompatibilities with new libraries or tools, so that problems can be fixed before they're rolled out to everyone. The mirror may be updated more frequently as needed to address security issues or general releases.

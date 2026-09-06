@@ -1,0 +1,12 @@
+[Unit]
+Description=Import verified Arch packages and publish the pool edge ring
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/omarchy-mirror/edge.env
+ExecStart=/opt/omarchy-mirror/deploy/pool source import arch --location ${MIRROR_UPSTREAM} --repo core --repo extra --repo multilib --arch x86_64 --ring edge --reason "Hourly Arch import" --json
+TimeoutStartSec=6h
+UMask=0077

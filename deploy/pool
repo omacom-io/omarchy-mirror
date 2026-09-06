@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# All operator commands and the timer use the same runtime and persistent paths.
+# Override the engine with podman if desired; ownership/user namespace setup is
+# the operator's responsibility when using a rootless engine.
+exec "${MIRROR_CONTAINER_ENGINE:-docker}" run --rm --init \
+  --user "${MIRROR_PUBLISHER_UID:-1000}:${MIRROR_PUBLISHER_GID:-1000}" \
+  --env-file /etc/omarchy-mirror/credentials.env \
+  --mount type=bind,src=/etc/omarchy-mirror,dst=/etc/omarchy-mirror,readonly \
+  --mount type=bind,src=/var/lib/omarchy-mirror,dst=/var/lib/omarchy-mirror \
+  --entrypoint "${MIRROR_ENTRYPOINT:-omarchy-mirror}" \
+  "${MIRROR_PUBLISHER_IMAGE:-omarchy-mirror-publisher:preview}" "$@"

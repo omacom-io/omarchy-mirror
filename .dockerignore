@@ -1,0 +1,8 @@
+**
+!Dockerfile
+!pyproject.toml
+!mirror/
+!mirror/**
+!scripts/
+!scripts/smoke-pacman.py
+mirror/__pycache__/

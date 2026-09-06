@@ -1,0 +1,13 @@
+{
+  "store": "s3://omarchy-mirror-pool-preview/preview",
+  "endpoint": "https://ACCOUNT_ID.r2.cloudflarestorage.com",
+  "region": "auto",
+  "cache": "/var/lib/omarchy-mirror/cache",
+  "keyrings": [
+    "/usr/share/pacman/keyrings/archlinux.gpg",
+    "/etc/omarchy-mirror/publisher.gpg"
+  ],
+  "sign_key": "REPLACE_WITH_FULL_SIGNING_FINGERPRINT",
+  "gnupghome": "/var/lib/omarchy-mirror/gnupg",
+  "base_url": "https://omarchy-mirror-pool-preview.YOUR_SUBDOMAIN.workers.dev"
+}

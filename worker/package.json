@@ -1,0 +1,25 @@
+{
+  "name": "omarchy-mirror-pool-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "types": "wrangler types",
+    "check": "wrangler types && tsc --noEmit",
+    "test": "vitest run",
+    "deploy": "wrangler deploy",
+    "dry-run": "wrangler deploy --dry-run"
+  },
+  "overrides": {
+    "@cloudflare/vitest-pool-workers": { "workerd": "1.20260903.1" }
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260906.1",
+    "@types/node": "^26.4.1",
+    "miniflare": "^5.20260903.0-alpha",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.129.0"
+  }
+}

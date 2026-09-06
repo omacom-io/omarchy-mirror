@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "omarchy-mirror-pool-preview",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-06",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "r2_buckets": [
+    { "binding": "POOL", "bucket_name": "omarchy-mirror-pool-preview" }
+  ],
+  "vars": {
+    "STORE_PREFIX": "preview",
+    "DEFAULT_RING": "edge",
+    "HOST_RINGS": "{}"
+  }
+}

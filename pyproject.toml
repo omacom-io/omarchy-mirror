@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omarchy-mirror"
+version = "0.1.0"
+description = "Immutable package pools and release rings for pacman repositories"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+r2 = ["boto3>=1.40,<2"]
+test = ["boto3>=1.40,<2", "moto[s3]>=5,<6"]
+
+[project.scripts]
+omarchy-mirror = "mirror.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mirror*"]
+
+[tool.setuptools.package-data]
+mirror = ["SKILL.md"]

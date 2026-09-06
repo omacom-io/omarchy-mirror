@@ -1,0 +1,11 @@
+[Unit]
+Description=Refresh the pool edge ring hourly
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=5m
+Persistent=true
+Unit=omarchy-pool-edge.service
+
+[Install]
+WantedBy=timers.target
