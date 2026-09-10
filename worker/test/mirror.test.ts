@@ -57,6 +57,28 @@ describe("pacman routing", () => {
     expect(await (await request("/extra/os/x86_64/extra-stable.db")).text()).toBe("new database");
     expect(await (await request("/extra/os/x86_64/extra-hyprland-oob-c123.db")).text()).toBe("database");
   });
+  it("re-serves a rolled back ring database instead of confirming the newer copy", async () => {
+    const replacement = "d".repeat(64);
+    // Selections are activated after their databases are uploaded.
+    const activation = Date.now();
+    await put(`builds/${replacement}.json`, { repositories: { extra: { db: "databases/new.db" } } });
+    await bindings.POOL.put("preview/databases/new.db", "new database");
+    await put(`publications/${id}.json`, { rings: {
+      "x86_64/stable": { build: replacement, updated_at: new Date(activation + 1000).toISOString() },
+    } });
+    // A client syncs the newer selection and stamps its local database with it.
+    const newer = await request("/extra/os/x86_64/extra-stable.db");
+    expect(await newer.text()).toBe("new database");
+    const stamped = newer.headers.get("Last-Modified")!;
+    // Rolling back reactivates an earlier selection. Its database is content
+    // addressed, so the object predates the copy the client already holds.
+    await put(`publications/${id}.json`, { rings: {
+      "x86_64/stable": { build: buildId, updated_at: new Date(activation + 2000).toISOString() },
+    } });
+    const rolled = await request("/extra/os/x86_64/extra-stable.db", { headers: { "If-Modified-Since": stamped } });
+    expect(rolled.status).toBe(200);
+    expect(await rolled.text()).toBe("database");
+  });
   it("redirects old package filenames and detached signatures to the pool", async () => {
     const response = await request("/extra/os/x86_64/example-1-1-x86_64.pkg.tar.zst");
     expect(response.status).toBe(307);
