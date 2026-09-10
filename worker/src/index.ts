@@ -34,11 +34,12 @@ async function publication(env: Env): Promise<{ id: string; data: Publication }>
   return { id: pointer.publication, data: await json<Publication>(env, `publications/${pointer.publication}.json`) };
 }
 
-async function buildForRing(env: Env, arch: string, ring: string): Promise<Build> {
+async function buildForRing(env: Env, arch: string, ring: string): Promise<{ build: Build; activated: number }> {
   const current = await publication(env);
   const selected = current.data.rings[`${arch}/${ring}`];
   if (!selected) throw new HttpError(404, "Ring not found");
-  return json<Build>(env, `builds/${selected.build}.json`);
+  const activated = Date.parse(selected.updated_at);
+  return { build: await json<Build>(env, `builds/${selected.build}.json`), activated: Number.isNaN(activated) ? 0 : activated };
 }
 
 function matches(header: string | null, etag: string, weak = true): boolean {
@@ -61,13 +62,17 @@ function byteRange(header: string, size: number): { offset: number; length: numb
   return { offset: start, length: end - start + 1 };
 }
 
-async function serve(request: Request, env: Env, objectKey: string, immutable: boolean): Promise<Response> {
+async function serve(request: Request, env: Env, objectKey: string, immutable: boolean, activated = 0): Promise<Response> {
   const storedKey = key(env, objectKey);
   const head = await env.POOL.head(storedKey);
   if (!head) throw new HttpError(404, "Not found");
+  // A reactivated selection reuses its original object, so the upload time can
+  // predate the database a client already holds. Ring aliases advertise the
+  // activation instead, keeping conditional requests correct across rollbacks.
+  const modified = new Date(Math.max(head.uploaded.getTime(), activated));
   const headers = new Headers({
     "Cache-Control": immutable ? "public, max-age=31536000, immutable" : "no-store",
-    "ETag": head.httpEtag, "Last-Modified": head.uploaded.toUTCString(),
+    "ETag": head.httpEtag, "Last-Modified": modified.toUTCString(),
     "Accept-Ranges": "bytes", "X-Content-Type-Options": "nosniff",
     "Content-Type": head.httpMetadata?.contentType || "application/octet-stream",
     "Access-Control-Allow-Origin": "*",
@@ -77,13 +82,13 @@ async function serve(request: Request, env: Env, objectKey: string, immutable: b
   }
   const modifiedSince = request.headers.get("If-Modified-Since");
   if (matches(request.headers.get("If-None-Match"), head.httpEtag) ||
-      (!request.headers.has("If-None-Match") && modifiedSince && Math.floor(head.uploaded.getTime() / 1000) <= Math.floor(Date.parse(modifiedSince) / 1000))) {
+      (!request.headers.has("If-None-Match") && modifiedSince && Math.floor(modified.getTime() / 1000) <= Math.floor(Date.parse(modifiedSince) / 1000))) {
     return new Response(null, { status: 304, headers });
   }
   let range: { offset: number; length: number } | undefined;
   const rangeHeader = request.headers.get("Range");
   const ifRange = request.headers.get("If-Range");
-  const rangeAllowed = !ifRange || ifRange === head.httpEtag || (!ifRange.startsWith('"') && Date.parse(ifRange) >= Math.floor(head.uploaded.getTime() / 1000) * 1000);
+  const rangeAllowed = !ifRange || ifRange === head.httpEtag || (!ifRange.startsWith('"') && Date.parse(ifRange) >= Math.floor(modified.getTime() / 1000) * 1000);
   if (request.method === "GET" && rangeHeader && rangeAllowed) {
     try { range = byteRange(rangeHeader, head.size); }
     catch (error) {
@@ -124,7 +129,10 @@ async function handle(request: Request, env: Env): Promise<Response> {
     });
   }
   const api = /^api\/v1\/rings\/([a-z0-9_.-]+)\/([a-z0-9_.-]+)\/packages\.json$/.exec(path);
-  if (api) return serve(request, env, (await buildForRing(env, api[1], api[2])).catalogue, false);
+  if (api) {
+    const resolved = await buildForRing(env, api[1], api[2]);
+    return serve(request, env, resolved.build.catalogue, false, resolved.activated);
+  }
   const catalog = /^api\/v1\/builds\/([a-f0-9]{64})\/packages\.json$/.exec(path);
   if (catalog) return serve(request, env, (await json<Build>(env, `builds/${catalog[1]}.json`)).catalogue, true);
   if (/^pool\/[a-f0-9]{64}\/[A-Za-z0-9_+.~:@-]+\.pkg\.tar\.[A-Za-z0-9]+$/.test(path) || /^signatures\/[a-f0-9]{64}\.sig$/.test(path)) {
@@ -151,10 +159,12 @@ async function handle(request: Request, env: Env): Promise<Response> {
       route = { kind: "ring", ring: hosts[url.hostname] ?? env.DEFAULT_RING, repo, arch };
     } else route = await json<Route>(env, `routes/${arch}/${repo}/${database[1]}.json`);
     if (route.repo !== repo || route.arch !== arch) throw new HttpError(404, "Alias mismatch");
-    const build = route.kind === "ring" ? await buildForRing(env, arch, route.ring!) : await json<Build>(env, `builds/${route.build}.json`);
+    let build: Build, activated = 0;
+    if (route.kind === "ring") ({ build, activated } = await buildForRing(env, arch, route.ring!));
+    else build = await json<Build>(env, `builds/${route.build}.json`);
     const target = build.repositories[repo]?.[database[2] + (database[3] ?? "")];
     if (!target) throw new HttpError(404, "Repository not found");
-    return serve(request, env, target, route.kind === "build");
+    return serve(request, env, target, route.kind === "build", activated);
   }
   const packageFile = file.endsWith(".sig") ? file.slice(0, -4) : file;
   if (!/^[A-Za-z0-9_+.~:@-]+\.pkg\.tar\.[A-Za-z0-9]+$/.test(packageFile)) throw new HttpError(404, "Not found");
